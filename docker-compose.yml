@@ -1,0 +1,43 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_PULL_TIMEOUT=120
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  test_generator:
+    build: .
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      # Comma-separated condition types (threshold, boundary, timing,
+      # state, error, recovery), or "all". Override per-run with:
+      #   docker-compose run -e CONDITION_TYPES=threshold,timing test_generator
+      - CONDITION_TYPES=all
+    volumes:
+      - ./requirements:/app/requirements
+      - ./features:/app/features
+      - ./reports:/app/reports
+      - ./step_definitions:/app/step_definitions
+    command: >
+      sh -c "
+      echo 'Starting test generation...' &&
+      python -c 'import os, json; from src.orchestrator import TestOrchestrator; raw=os.environ.get(\"CONDITION_TYPES\",\"all\").strip(); types=None if not raw or raw.lower()==\"all\" else [t.strip() for t in raw.split(\",\") if t.strip()]; TestOrchestrator().process_all_requirements(types)' &&
+      echo 'Generating step definitions...' &&
+      python src/generate_steps.py &&
+      echo 'Running tests...' &&
+      pytest features/ --html=reports/report.html --self-contained-html -v
+      "
+
+volumes:
+  ollama_data:

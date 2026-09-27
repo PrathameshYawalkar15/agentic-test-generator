@@ -1,0 +1,176 @@
+name: 1️⃣ Generate Test Cases from Requirements
+
+on:
+  push:
+    paths:
+      - 'requirements/**'
+      - '.github/workflows/1_generate_tests.yml'
+  pull_request:
+    paths:
+      - 'requirements/**'
+  workflow_dispatch:
+    inputs:
+      condition_types:
+        description: >
+          Comma-separated condition types to generate
+          (threshold, boundary, timing, state, error, recovery),
+          or "all" for every type.
+        required: false
+        default: 'all'
+
+# Since Feb 2023, GitHub issues a read-only GITHUB_TOKEN by default for
+# new repositories/orgs. This workflow needs write access to push
+# generated files back and comment on PRs, so it's requested explicitly
+# here rather than relying on a repo setting (Settings > Actions >
+# General > Workflow permissions) being flipped to read/write.
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  generate_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🦙 Start Ollama
+        # See the note on "Check Ollama health" below -- generation
+        # doesn't depend on this yet, so a slow/failed model pull
+        # shouldn't fail the whole run.
+        continue-on-error: true
+        run: |
+          docker run -d \
+            --name ollama \
+            -p 11434:11434 \
+            -v ollama:/root/.ollama \
+            ollama/ollama serve
+          sleep 10
+
+          # Pull models
+          docker exec ollama ollama pull mistral:7b
+          docker exec ollama ollama pull nomic-embed-text
+
+          # Verify
+          curl -s http://localhost:11434/api/tags | grep -q mistral || exit 1
+          echo "✅ Ollama running with models"
+
+      - name: 📝 Check Ollama health
+        # Informational only. Nothing in process_all_requirements() (the
+        # actual generation pipeline below) currently calls Ollama, so a
+        # failed/slow model pull here shouldn't block test generation --
+        # remove this continue-on-error once Ollama is actually wired
+        # into the generation path.
+        continue-on-error: true
+        run: |
+          python -c "
+          from src.llm_client import OllamaClient
+          client = OllamaClient()
+          if client.health_check():
+              print('✅ Ollama is healthy')
+          else:
+              print('⚠️  Ollama health check failed (non-fatal -- not used by generation yet)')
+          "
+
+      - name: 🚀 Run test generation pipeline
+        env:
+          # github.event.inputs is only populated on workflow_dispatch;
+          # push/pull_request runs fall back to "all".
+          CONDITION_TYPES: ${{ github.event.inputs.condition_types || 'all' }}
+        run: |
+          python -c "
+          import os, json
+          from src.orchestrator import TestOrchestrator
+
+          raw_types = os.environ.get('CONDITION_TYPES', 'all').strip()
+          condition_types = (
+              None if not raw_types or raw_types.lower() == 'all'
+              else [t.strip() for t in raw_types.split(',') if t.strip()]
+          )
+
+          orchestrator = TestOrchestrator()
+          result = orchestrator.process_all_requirements(condition_types)
+
+          # Save result for next job
+          with open('generation_result.json', 'w') as f:
+              json.dump(result, f, indent=2)
+
+          if not result['success']:
+              exit(1)
+          "
+
+      - name: 📊 Display generation summary
+        run: |
+          python -c "
+          import json
+          with open('generation_result.json') as f:
+              result = json.load(f)
+
+          print('### Test Generation Report')
+          print(f'- Processed: {result[\"processed\"]}/{result[\"total\"]}')
+          print(f'- Total Scenarios: {result[\"total_scenarios\"]}')
+          " >> $GITHUB_STEP_SUMMARY
+
+      - name: 📤 Upload generated feature files
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-features
+          path: features/
+          retention-days: 30
+
+      - name: 📤 Upload generation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: generation-report
+          path: generation_result.json
+
+      - name: 💾 Commit generated files
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "Test Generator Bot"
+          git config user.email "bot@agentic-tests.ai"
+
+          git add features/
+          git commit -m "🤖 Auto-generated test cases" || echo "No changes to commit"
+          git push || echo "No upstream"
+        continue-on-error: true
+
+      - name: 📝 Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const result = JSON.parse(fs.readFileSync('generation_result.json', 'utf8'));
+
+            const comment = `## 🤖 Test Generation Report
+
+            | Metric | Value |
+            |--------|-------|
+            | Requirements Processed | ${result.processed}/${result.total} |
+            | Scenarios Generated | ${result.total_scenarios} |
+            | Status | ${ result.success ? '✅ Success' : '❌ Failed' } |
+
+            Feature files are ready in the artifacts!`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
