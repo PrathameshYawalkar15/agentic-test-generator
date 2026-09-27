@@ -1,12 +1,26 @@
-langchain==0.1.5
-chromadb==0.4.12
-ollama==0.1.13
-python-dotenv==1.0.0
-pydantic==2.5.0
-requests==2.31.0
-pytest==7.4.3
-pytest-bdd==6.1.1
-pytest-asyncio==0.21.1
-pytest-html==4.1.1
-PyGithub==1.60
-allure-pytest==2.13.2
+# Only packages actually imported/used by src/ or the test-execution
+# CLI flags are listed here. The previous version pinned several
+# packages (langchain, chromadb, ollama, python-dotenv, pydantic,
+# pytest-asyncio, PyGithub) that nothing in the codebase imports, at
+# exact versions -- one of which (ollama==0.1.13) turned out to never
+# have been a real published version. Rather than re-guess exact pins
+# for packages that aren't even used, they're dropped, and the
+# remaining, actually-needed ones use minimum-version bounds (>=)
+# instead of exact (==) so a single missing/yanked patch release can't
+# break the install the same way again.
+#
+# If you want fully reproducible pins later: get it installing and
+# passing locally first, then `pip freeze > requirements.txt` to lock
+# in versions you've actually verified work.
+requests>=2.31.0        # used by src/llm_client.py (raw HTTP calls to Ollama)
+pytest>=7.4.3            # runs the generated features/
+pytest-bdd>=6.1.1        # binds Gherkin steps to step_definitions/conftest.py
+pytest-html>=4.1.1       # needed for the --html= report flag used throughout
+allure-pytest>=2.13.2    # needed for the --alluredir flag in workflow 2
+
+# Add back only if/when you actually build the feature that needs it:
+#   langchain / chromadb   -- if you build LLM-based requirement analysis
+#   python-dotenv          -- if you start loading config from a .env file
+#   pydantic                -- if you add structured data models
+#   PyGithub                -- if you script the GitHub API directly,
+#                              rather than via actions/github-script in the workflows
