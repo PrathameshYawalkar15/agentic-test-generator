@@ -1,29 +1,29 @@
 Feature: Airbag Deployment System
 
-  # Generated: 2026-09-27 13:07:13
+  # Generated: 2026-09-27 13:13:56
 
 @test
-Scenario: Threshold - Detect frontal collision above 25g de...
-  Given a Detect frontal collision above 25g deceleration system in normal state
-  When Detect frontal collision above 25g deceleration exceeds the specified value
+Scenario: Threshold - Detect frontal collision above 30g de...
+  Given a Detect frontal collision above 30g deceleration system in normal state
+  When Detect frontal collision above 30g deceleration exceeds the specified value
   Then the system should respond correctly
 
 @test
-Scenario: Timing - Detect frontal collision above 25g de...
-  Given a Detect frontal collision above 25g deceleration system in normal state
-  When Detect frontal collision above 25g deceleration is triggered within the specified value
+Scenario: Timing - Detect frontal collision above 30g de...
+  Given a Detect frontal collision above 30g deceleration system in normal state
+  When Detect frontal collision above 30g deceleration is triggered within the specified value
   Then the system should respond correctly
 
 @test
-Scenario: State - Detect frontal collision above 25g de...
-  Given a Detect frontal collision above 25g deceleration system in normal state
-  When Detect frontal collision above 25g deceleration is active
+Scenario: State - Detect frontal collision above 30g de...
+  Given a Detect frontal collision above 30g deceleration system in normal state
+  When Detect frontal collision above 30g deceleration is active
   Then the system should respond correctly
 
 @test
-Scenario: Recovery - Detect frontal collision above 25g de...
-  Given a Detect frontal collision above 25g deceleration system in normal state
-  When Detect frontal collision above 25g deceleration returns to normal after the fault is cleared
+Scenario: Recovery - Detect frontal collision above 30g de...
+  Given a Detect frontal collision above 30g deceleration system in normal state
+  When Detect frontal collision above 30g deceleration returns to normal after the fault is cleared
   Then the system should respond correctly
 
 @test
@@ -75,27 +75,27 @@ Scenario: Recovery - Monitor seat occupancy status
   Then the system should respond correctly
 
 @test
-Scenario: Threshold - Deploy within 30ms of a qualifying co...
-  Given a Deploy within 30ms of a qualifying collision system in normal state
-  When Deploy within 30ms of a qualifying collision exceeds 30ms
+Scenario: Threshold - Deploy within 50ms of a qualifying co...
+  Given a Deploy within 50ms of a qualifying collision system in normal state
+  When Deploy within 50ms of a qualifying collision exceeds 50ms
   Then the system should respond correctly
 
 @test
-Scenario: Timing - Deploy within 30ms of a qualifying co...
-  Given a Deploy within 30ms of a qualifying collision system in normal state
-  When Deploy within 30ms of a qualifying collision is triggered within 30ms
+Scenario: Timing - Deploy within 50ms of a qualifying co...
+  Given a Deploy within 50ms of a qualifying collision system in normal state
+  When Deploy within 50ms of a qualifying collision is triggered within 50ms
   Then the system should respond correctly
 
 @test
-Scenario: State - Deploy within 30ms of a qualifying co...
-  Given a Deploy within 30ms of a qualifying collision system in normal state
-  When Deploy within 30ms of a qualifying collision is active
+Scenario: State - Deploy within 50ms of a qualifying co...
+  Given a Deploy within 50ms of a qualifying collision system in normal state
+  When Deploy within 50ms of a qualifying collision is active
   Then the system should respond correctly
 
 @test
-Scenario: Recovery - Deploy within 30ms of a qualifying co...
-  Given a Deploy within 30ms of a qualifying collision system in normal state
-  When Deploy within 30ms of a qualifying collision returns to normal after the fault is cleared
+Scenario: Recovery - Deploy within 50ms of a qualifying co...
+  Given a Deploy within 50ms of a qualifying collision system in normal state
+  When Deploy within 50ms of a qualifying collision returns to normal after the fault is cleared
   Then the system should respond correctly
 
 @test
@@ -195,9 +195,9 @@ Scenario: Recovery - Illuminate warning light if system is...
   Then the system should respond correctly
 
 @test
-Scenario: Boundary - Detect frontal collision above 25g de...
-  Given a Detect frontal collision above 25g deceleration system at boundary conditions
-  When Detect frontal collision above 25g deceleration is at boundary value the specified value at exact threshold
+Scenario: Boundary - Detect frontal collision above 30g de...
+  Given a Detect frontal collision above 30g deceleration system at boundary conditions
+  When Detect frontal collision above 30g deceleration is at boundary value the specified value at exact threshold
   Then the system should trigger correctly
 
 @test
@@ -213,9 +213,9 @@ Scenario: Boundary - Monitor seat occupancy status
   Then the system should trigger correctly
 
 @test
-Scenario: Boundary - Deploy within 30ms of a qualifying co...
-  Given a Deploy within 30ms of a qualifying collision system at boundary conditions
-  When Deploy within 30ms of a qualifying collision is at boundary value 30ms at exact threshold
+Scenario: Boundary - Deploy within 50ms of a qualifying co...
+  Given a Deploy within 50ms of a qualifying collision system at boundary conditions
+  When Deploy within 50ms of a qualifying collision is at boundary value 50ms at exact threshold
   Then the system should trigger correctly
 
 @test
@@ -243,9 +243,9 @@ Scenario: Boundary - Illuminate warning light if system is...
   Then the system should trigger correctly
 
 @test
-Scenario: Error - Detect frontal collision above 25g de...
-  Given a Detect frontal collision above 25g deceleration system ready to detect errors
-  When Detect frontal collision above 25g deceleration fails or is unavailable
+Scenario: Error - Detect frontal collision above 30g de...
+  Given a Detect frontal collision above 30g deceleration system ready to detect errors
+  When Detect frontal collision above 30g deceleration fails or is unavailable
   Then the system should handle the error gracefully
 
 @test
@@ -261,9 +261,9 @@ Scenario: Error - Monitor seat occupancy status
   Then the system should handle the error gracefully
 
 @test
-Scenario: Error - Deploy within 30ms of a qualifying co...
-  Given a Deploy within 30ms of a qualifying collision system ready to detect errors
-  When Deploy within 30ms of a qualifying collision fails or is unavailable
+Scenario: Error - Deploy within 50ms of a qualifying co...
+  Given a Deploy within 50ms of a qualifying collision system ready to detect errors
+  When Deploy within 50ms of a qualifying collision fails or is unavailable
   Then the system should handle the error gracefully
 
 @test

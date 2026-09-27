@@ -1,6 +1,6 @@
 Feature: Battery Management System
 
-  # Generated: 2026-09-27 13:07:13
+  # Generated: 2026-09-27 13:13:56
 
 @test
 Scenario: Threshold - Monitor cell temperature continuously
