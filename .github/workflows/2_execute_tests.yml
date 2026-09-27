@@ -1,0 +1,124 @@
+name: 2️⃣ Execute Generated Tests
+
+on:
+  workflow_run:
+    workflows: ["1️⃣ Generate Test Cases from Requirements"]
+    types: [completed]
+  workflow_dispatch:
+
+# actions:read is required to download artifacts from workflow 1's run
+# (a different run than this one -- see the run-id/github-token inputs
+# below). checks:write is required by dorny/test-reporter to publish
+# its check run; without it that step fails even though the tests
+# themselves ran fine.
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  download_and_execute:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # actions/download-artifact@v4 only looks at the CURRENT run by
+      # default. Since this job is triggered by workflow 1's run
+      # completing (not its own run), it needs run-id + github-token to
+      # reach back into that triggering run. github.event.workflow_run.id
+      # is workflow 1's run id here.
+      - name: 📥 Download generated features
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-features
+          path: features/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: 📥 Download generation report
+        uses: actions/download-artifact@v4
+        with:
+          name: generation-report
+          path: ./
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: 📦 Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest-html allure-pytest
+
+      - name: 📝 Generate step definitions
+        run: |
+          # Use the real step-definition generator against the features
+          # that were actually downloaded, instead of a hardcoded
+          # placeholder conftest.py. A fixed set of Given/When/Then
+          # strings can't match dynamically generated scenario text
+          # (e.g. "a Detect brake pressure > 50% system in normal
+          # state"), so pytest-bdd would report every scenario as
+          # missing its step implementation.
+          python src/generate_steps.py
+
+      - name: 🧪 Run pytest with BDD
+        run: |
+          pytest features/ \
+            --gherkin-terminal-reporter \
+            --html=reports/test_report.html \
+            --self-contained-html \
+            -v \
+            --tb=short \
+            || true
+
+      - name: 📊 Generate Allure report
+        run: |
+          pytest features/ \
+            --alluredir=allure-results \
+            -v \
+            || true
+
+      - name: 📤 Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            reports/
+            allure-results/
+          retention-days: 30
+
+      # Forward the generation report so workflow 3 (triggered by THIS
+      # workflow's run) can reach it with a single run-id hop, the same
+      # way this job reaches workflow 1's artifacts above. Without this,
+      # workflow 3 would be looking for "generation-report" inside this
+      # run and never find it, since it was actually uploaded by
+      # workflow 1, two hops back.
+      - name: 📤 Forward generation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: generation-report
+          path: generation_result.json
+
+      - name: 📊 Publish test report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: 'Test Results'
+          path: 'reports/test_report.html'
+          reporter: 'html'
+
+      - name: ✅ Check test status
+        run: |
+          if [ -f "reports/test_report.html" ]; then
+              echo "✅ Tests executed successfully"
+              echo "Report available in artifacts"
+          else
+              echo "⚠️ No test report generated"
+          fi

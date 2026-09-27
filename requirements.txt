@@ -7,5 +7,6 @@ requests==2.31.0
 pytest==7.4.3
 pytest-bdd==6.1.1
 pytest-asyncio==0.21.1
+pytest-html==4.1.1
 PyGithub==1.60
 allure-pytest==2.13.2
