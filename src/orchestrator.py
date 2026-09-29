@@ -1,7 +1,9 @@
 """Main orchestration for test generation and execution"""
 
+import os
 import json
 from typing import Dict, List, Optional
+from requirement_reader import get_modified_requirements, get_all_requirements
 
 # NOTE: these are absolute imports rooted at the project (src is a package).
 # Every doc/workflow in this project invokes the orchestrator as

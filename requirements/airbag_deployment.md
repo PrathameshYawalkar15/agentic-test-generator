@@ -4,7 +4,7 @@ The system shall deploy airbags rapidly and reliably in the event of a
 qualifying collision, while avoiding false deployments.
 
 ## Detection
-- Detect frontal collision above 30g deceleration
+- Detect frontal collision above 10g deceleration
 - Identify side-impact collision above 15g lateral force
 - Monitor seat occupancy status
 
