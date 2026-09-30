@@ -1,29 +1,29 @@
 Feature: Airbag Deployment System
 
-  # Generated: 2026-09-27 13:13:56
+  # Generated: 2026-09-30 15:52:17
 
 @test
-Scenario: Threshold - Detect frontal collision above 30g de...
-  Given a Detect frontal collision above 30g deceleration system in normal state
-  When Detect frontal collision above 30g deceleration exceeds the specified value
+Scenario: Threshold - Detect frontal collision above 10g de...
+  Given a Detect frontal collision above 10g deceleration system in normal state
+  When Detect frontal collision above 10g deceleration exceeds the specified value
   Then the system should respond correctly
 
 @test
-Scenario: Timing - Detect frontal collision above 30g de...
-  Given a Detect frontal collision above 30g deceleration system in normal state
-  When Detect frontal collision above 30g deceleration is triggered within the specified value
+Scenario: Timing - Detect frontal collision above 10g de...
+  Given a Detect frontal collision above 10g deceleration system in normal state
+  When Detect frontal collision above 10g deceleration is triggered within the specified value
   Then the system should respond correctly
 
 @test
-Scenario: State - Detect frontal collision above 30g de...
-  Given a Detect frontal collision above 30g deceleration system in normal state
-  When Detect frontal collision above 30g deceleration is active
+Scenario: State - Detect frontal collision above 10g de...
+  Given a Detect frontal collision above 10g deceleration system in normal state
+  When Detect frontal collision above 10g deceleration is active
   Then the system should respond correctly
 
 @test
-Scenario: Recovery - Detect frontal collision above 30g de...
-  Given a Detect frontal collision above 30g deceleration system in normal state
-  When Detect frontal collision above 30g deceleration returns to normal after the fault is cleared
+Scenario: Recovery - Detect frontal collision above 10g de...
+  Given a Detect frontal collision above 10g deceleration system in normal state
+  When Detect frontal collision above 10g deceleration returns to normal after the fault is cleared
   Then the system should respond correctly
 
 @test
@@ -195,9 +195,9 @@ Scenario: Recovery - Illuminate warning light if system is...
   Then the system should respond correctly
 
 @test
-Scenario: Boundary - Detect frontal collision above 30g de...
-  Given a Detect frontal collision above 30g deceleration system at boundary conditions
-  When Detect frontal collision above 30g deceleration is at boundary value the specified value at exact threshold
+Scenario: Boundary - Detect frontal collision above 10g de...
+  Given a Detect frontal collision above 10g deceleration system at boundary conditions
+  When Detect frontal collision above 10g deceleration is at boundary value the specified value at exact threshold
   Then the system should trigger correctly
 
 @test
@@ -243,9 +243,9 @@ Scenario: Boundary - Illuminate warning light if system is...
   Then the system should trigger correctly
 
 @test
-Scenario: Error - Detect frontal collision above 30g de...
-  Given a Detect frontal collision above 30g deceleration system ready to detect errors
-  When Detect frontal collision above 30g deceleration fails or is unavailable
+Scenario: Error - Detect frontal collision above 10g de...
+  Given a Detect frontal collision above 10g deceleration system ready to detect errors
+  When Detect frontal collision above 10g deceleration fails or is unavailable
   Then the system should handle the error gracefully
 
 @test
