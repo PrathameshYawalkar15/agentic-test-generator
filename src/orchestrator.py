@@ -3,14 +3,6 @@
 import os
 import json
 from typing import Dict, List, Optional
-from requirement_reader import get_modified_requirements, get_all_requirements
-
-# NOTE: these are absolute imports rooted at the project (src is a package).
-# Every doc/workflow in this project invokes the orchestrator as
-# `from src.orchestrator import TestOrchestrator` run from the project
-# root, which puts the project root (not src/) on sys.path. Plain
-# `from requirement_reader import ...` style imports fail under that
-# invocation with ModuleNotFoundError -- these must be `src.`-qualified.
 from src.requirement_reader import RequirementReader
 from src.test_condition_generator import TestConditionGenerator
 from src.gherkin_generator import GherkinGenerator

@@ -22,7 +22,8 @@ class RequirementReader:
                     all_files.append(os.path.join(requirements_dir, filename))
         return all_files
 
- 
+
+    @staticmethod
     def get_modified_requirements(requirements_dir):
         """Uses Git to find modified or untracked .md files in the CI/CD pipeline."""
         modified_files = []
@@ -46,6 +47,7 @@ class RequirementReader:
         return modified_files
 
 
+    @staticmethod
     def read_requirement_file(self, filename: str) -> str:
         """Read a single requirement file"""
         filepath = os.path.join(self.requirements_dir, filename)
