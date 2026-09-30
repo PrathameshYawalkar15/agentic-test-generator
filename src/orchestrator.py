@@ -1,6 +1,5 @@
 """Main orchestration for test generation and execution"""
 
-import os
 import json
 from typing import Dict, List, Optional
 from src.requirement_reader import RequirementReader

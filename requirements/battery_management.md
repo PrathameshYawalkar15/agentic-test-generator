@@ -8,7 +8,7 @@ charging or discharging conditions.
 - Monitor state of charge
 
 ## Protection
-- Disable charging above 35 degrees Celsius
+- Disable charging above 45 degrees Celsius
 - Reduce charge current above 90% state of charge
 - Prevent discharge below 5% state of charge
 
