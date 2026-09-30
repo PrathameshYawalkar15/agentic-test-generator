@@ -1,7 +1,8 @@
 """Read requirements from markdown files"""
 
 import os
-from typing import List, Dict
+import subprocess
+from typing import Dict, List
 
 
 class RequirementReader:
@@ -11,24 +12,51 @@ class RequirementReader:
         self.requirements_dir = requirements_dir
         os.makedirs(requirements_dir, exist_ok=True)
 
+    @staticmethod
+    def get_all_requirements(requirements_dir: str = "requirements") -> List[str]:
+        """Returns all .md files in the requirements directory as a fallback."""
+        all_files = []
+        if os.path.exists(requirements_dir):
+            for filename in os.listdir(requirements_dir):
+                if filename.endswith(".md"):
+                    all_files.append(os.path.join(requirements_dir, filename))
+        return all_files
+
+    @staticmethod
+    def get_modified_requirements(requirements_dir: str = "requirements") -> List[str]:
+        """Uses Git to find modified or untracked .md files in the CI/CD pipeline."""
+        modified_files = []
+        try:
+            result = subprocess.run(
+                ['git', 'ls-files', '--modified', '--others', '--exclude-standard', requirements_dir],
+                stdout=subprocess.PIPE,
+                text=True,
+                check=True
+            )
+            for line in result.stdout.splitlines():
+                if line.endswith(".md"):
+                    filepath = os.path.abspath(line)
+                    modified_files.append(filepath)
+        except subprocess.CalledProcessError:
+            print("Warning: Git command failed. Ensure the CI/CD pipeline has checked out the git repository.")
+        return modified_files
+
     def read_requirement_file(self, filename: str) -> str:
         """Read a single requirement file"""
-        filepath = os.path.join(self.requirements_dir, filename)
+        filepath = os.path.join(self.requirements_dir, filename) if not os.path.isabs(filename) else filename
 
         if not os.path.exists(filepath):
             raise FileNotFoundError(f"Requirement file not found: {filepath}")
 
         with open(filepath, 'r', encoding='utf-8') as f:
-            content = f.read()
-
-        return content
+            return f.read()
 
     def read_all_requirements(self) -> Dict[str, str]:
         """Read all requirement files"""
         requirements = {}
 
         if not os.path.exists(self.requirements_dir):
-            print(f"⚠️  Requirements directory not found: {self.requirements_dir}")
+            print(f"⚠️️  Requirements directory not found: {self.requirements_dir}")
             return requirements
 
         for filename in os.listdir(self.requirements_dir):
@@ -43,15 +71,7 @@ class RequirementReader:
         return requirements
 
     def parse_requirement(self, content: str) -> Dict:
-        """Parse requirement into structured format.
-
-        Bullet points ('- ...') are grouped under the '## ' section
-        heading they appear under. Bullets that appear before any
-        section heading are grouped under a default 'General' key.
-        `features` still returns a flat list of every bullet (for
-        backwards compatibility), while `sections` exposes the
-        per-section breakdown.
-        """
+        """Parse requirement into structured format."""
         lines = content.strip().split('\n')
 
         title = ""
@@ -102,37 +122,3 @@ class RequirementReader:
             "valid": len(issues) == 0,
             "issues": issues
         }
-
-
-# Test
-if __name__ == "__main__":
-    reader = RequirementReader()
-
-    # Sample with two sections, to demonstrate grouping
-    sample = """# ABS Braking System
-
-The system shall implement anti-lock braking to prevent wheel lockup.
-
-## Detection
-- Detect brake pressure > 50%
-- Detect wheel speed sensor faults
-
-## Response
-- Engage within 100ms
-- Modulate pressure at 10Hz
-- Deactivate below 10 km/h
-- Log all events
-"""
-
-    os.makedirs("requirements", exist_ok=True)
-    with open("requirements/abs_system.md", "w") as f:
-        f.write(sample)
-
-    req = reader.read_requirement_file("abs_system.md")
-    parsed = reader.parse_requirement(req)
-    validation = reader.validate_requirement(parsed)
-
-    print(f"✅ Title: {parsed['title']}")
-    print(f"✅ Description: {parsed['description']}")
-    print(f"✅ Sections: {parsed['sections']}")
-    print(f"✅ Valid: {validation}")
